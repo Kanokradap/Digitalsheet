@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบงานดิจิทัล : พลเมืองดิจิทัลตัวน้อย</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React and ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel Compiler CDN -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Sarabun', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-sky-50 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+    
+    // Pure React Native SVG Icon Component (Prevents DOM mutation conflicts)
+    const Icon = ({ name, className = "w-5 h-5" }) => {
+      const iconProps = {
+        className,
+        xmlns: "http://www.w3.org/2000/svg",
+        width: "24",
+        height: "24",
+        viewBox: "0 0 24 24",
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: "2",
+        strokeLinecap: "round",
+        strokeLinejoin: "round"
+      };
+
+      switch (name) {
+        case "shield-check":
+          return (
+            <svg {...iconProps}>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          );
+        case "book-open":
+          return (
+            <svg {...iconProps}>
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+          );
+        case "chevron-right":
+          return (
+            <svg {...iconProps}>
+              <path d="m9 18 6-6-6-6"/>
+            </svg>
+          );
+        case "chevron-left":
+          return (
+            <svg {...iconProps}>
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+          );
+        case "user-check":
+          return (
+            <svg {...iconProps}>
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <polyline points="16 11 18 13 22 9"/>
+            </svg>
+          );
+        case "message-square":
+          return (
+            <svg {...iconProps}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          );
+        case "alert-triangle":
+          return (
+            <svg {...iconProps}>
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          );
+        case "clock":
+          return (
+            <svg {...iconProps}>
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          );
+        case "check-circle":
+          return (
+            <svg {...iconProps}>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          );
+        case "help-circle":
+          return (
+            <svg {...iconProps}>
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          );
+        case "award":
+          return (
+            <svg {...iconProps}>
+              <circle cx="12" cy="8" r="7"/>
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+            </svg>
+          );
+        case "lock":
+          return (
+            <svg {...iconProps}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          );
+        case "search":
+          return (
+            <svg {...iconProps}>
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          );
+        case "refresh-cw":
+          return (
+            <svg {...iconProps}>
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          );
+        default:
+          return null;
+      }
+    };
+
+    function App() {
+      // Student Info State
+      const [studentInfo, setStudentInfo] = useState({ name: '', grade: 'ป.4', room: '', number: '' });
+      const [isStarted, setIsStarted] = useState(false);
+      const [currentStep, setCurrentStep] = useState(1);
+      const [isCompleted, setIsCompleted] = useState(false);
+
+      // Stats
+      const [hintCount, setHintCount] = useState(0);
+
+      // Worksheets State & User Answers
+      const [answers, setAnswers] = useState({
+        q1: { selected: [], reason: '' },
+        q2: { shareable: [], privateData: [], reason: '' },
+        q3: { action: '', reason: '', advisor: '' },
+        q4: { matched: {} },
+        q5: { sequence: [1, 2, 3, 4, 5] },
+        q6: { reply: '', impact: '' },
+        q7: { choice: '', reason: '', fillIn: '' },
+        q8: { change1: '', change2: '', change3: '', reason: '' },
+        q9: { adviceA: '', adviceB: '', adviceC: '' },
+        q10: { rule1: '', rule2: '', rule3: '', slogan: '', reflection: '' }
+      });
+
+      // Check state & Hint System
+      const [quizStatus, setQuizStatus] = useState({
+        1: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        2: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        3: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        4: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        5: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        6: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        7: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        8: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        9: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 },
+        10: { attempted: false, errors: 0, isPassed: false, hintLevel: 0 }
+      });
+
+      const totalSteps = 10;
+
+      // Q1 setup
+      const q1Items = [
+        { id: 'ต้น', text: 'ต้น: ขออนุญาตเพื่อนก่อนนำรูปไปโพสต์', isGood: true },
+        { id: 'น้ำ', text: 'น้ำ: แชร์ข่าวทันทีโดยไม่ตรวจสอบ', isGood: false },
+        { id: 'ฟ้า', text: 'ฟ้า: บอกรหัสผ่านให้เพื่อน', isGood: false },
+        { id: 'บอล', text: 'บอล: พบเพื่อนถูกล้อในกลุ่มแชต จึงแจ้งครู', isGood: true }
+      ];
+
+      // Q2 setup
+      const q2Items = [
+        { id: 'ชื่อเล่น', text: 'ชื่อเล่น', type: 'shareable' },
+        { id: 'รหัสผ่าน', text: 'รหัสผ่าน', type: 'private' },
+        { id: 'ที่อยู่บ้าน', text: 'ที่อยู่บ้าน', type: 'private' },
+        { id: 'งานอดิเรก', text: 'งานอดิเรก', type: 'shareable' },
+        { id: 'เบอร์โทรศัพท์', text: 'เบอร์โทรศัพท์', type: 'private' },
+        { id: 'รูปอาหาร', text: 'รูปอาหารที่ชอบ', type: 'shareable' },
+        { id: 'เลขบัตรประชาชน', text: 'เลขบัตรประชาชน', type: 'private' },
+        { id: 'ชื่อโรงเรียน', text: 'ชื่อโรงเรียน', type: 'shareable' }
+      ];
+
+      // Q4 setup
+      const q4Pairs = [
+        { id: 'p1', question: 'พบข่าวที่น่าสงสัย', answer: 'ตรวจสอบข้อมูลก่อนแชร์' },
+        { id: 'p2', question: 'เพื่อนถูกล้อในกลุ่มแชต', answer: 'ไม่ร่วมล้อและแจ้งผู้ใหญ่' },
+        { id: 'p3', question: 'มีคนขอรหัสผ่าน', answer: 'ไม่เปิดเผยรหัสผ่าน' },
+        { id: 'p4', question: 'ต้องการโพสต์รูปเพื่อน', answer: 'ขออนุญาตก่อนโพสต์' },
+        { id: 'p5', question: 'ใช้โทรศัพท์จนดึก', answer: 'ลดเวลาใช้งานและพักผ่อน' }
+      ];
+
+      // Q5 setup items
+      const q5StepsData = [
+        { id: 1, text: 'หยุดและไม่กดลิงก์' },
+        { id: 2, text: 'ตรวจสอบข้อมูล' },
+        { id: 3, text: 'ไม่ส่งต่อให้เพื่อน' },
+        { id: 4, text: 'ขอคำแนะนำจากครูหรือผู้ปกครอง' },
+        { id: 5, text: 'แจ้งผู้เกี่ยวข้องเมื่อพบสิ่งผิดปกติ' }
+      ];
+
+      // Handle Drag & Drop utilities for Q1 & Q2
+      const handleDropQ1 = (id) => {
+        if (!answers.q1.selected.includes(id)) {
+          setAnswers({
+            ...answers,
+            q1: { ...answers.q1, selected: [...answers.q1.selected, id] }
+          });
+        }
+      };
+
+      const removeItemQ1 = (id) => {
+        setAnswers({
+          ...answers,
+          q1: { ...answers.q1, selected: answers.q1.selected.filter(item => item !== id) }
+        });
+      };
+
+      const handleDropQ2 = (item, target) => {
+        let newShareable = answers.q2.shareable.filter(i => i.id !== item.id);
+        let newPrivate = answers.q2.privateData.filter(i => i.id !== item.id);
+
+        if (target === 'shareable') {
+          newShareable.push(item);
+        } else if (target === 'private') {
+          newPrivate.push(item);
+        }
+
+        setAnswers({
+          ...answers,
+          q2: {
+            ...answers.q2,
+            shareable: newShareable,
+            privateData: newPrivate
+          }
+        });
+      };
+
+      // Checking Validation Handlers
+      const checkAnswer = (step) => {
+        let passed = false;
+        let errors = quizStatus[step].errors;
+        let hintLvl = quizStatus[step].hintLevel;
+
+        if (step === 1) {
+          const correctChars = ['ต้น', 'บอล'];
+          const hasCorrectChars = answers.q1.selected.length === 2 && answers.q1.selected.every(c => correctChars.includes(c));
+          const hasReason = answers.q1.reason.trim().length >= 5;
+          passed = hasCorrectChars && hasReason;
+        } 
+        else if (step === 2) {
+          const correctShareable = ['ชื่อเล่น', 'งานอดิเรก', 'รูปอาหาร', 'ชื่อโรงเรียน'];
+          const correctPrivate = ['รหัสผ่าน', 'ที่อยู่บ้าน', 'เบอร์โทรศัพท์', 'เลขบัตรประชาชน'];
+          
+          const isShareableCorrect = answers.q2.shareable.length === 4 && answers.q2.shareable.every(i => correctShareable.includes(i.id));
+          const isPrivateCorrect = answers.q2.privateData.length === 4 && answers.q2.privateData.every(i => correctPrivate.includes(i.id));
+          const hasReason = answers.q2.reason.trim().length >= 5;
+          
+          passed = isShareableCorrect && isPrivateCorrect && hasReason;
+        }
+        else if (step === 3) {
+          const hasAction = answers.q3.action.trim().length >= 3;
+          const hasReason = answers.q3.reason.trim().length >= 3;
+          const hasAdvisor = answers.q3.advisor.trim().length >= 2;
+          passed = hasAction && hasReason && hasAdvisor;
+        }
+        else if (step === 4) {
+          const totalMatched = Object.keys(answers.q4.matched).length;
+          if (totalMatched === 5) {
+            let allCorrect = true;
+            q4Pairs.forEach(p => {
+              if (answers.q4.matched[p.id] !== p.answer) allCorrect = false;
+            });
+            passed = allCorrect;
+          }
+        }
+        else if (step === 5) {
+          const seq = answers.q5.sequence;
+          passed = seq[0] === 1 && answers.q5.sequence.length === 5;
+        }
+        else if (step === 6) {
+          const replyOk = answers.q6.reply.trim().length >= 5;
+          const impactOk = answers.q6.impact.trim().length >= 5;
+          passed = replyOk && impactOk;
+        }
+        else if (step === 7) {
+          const choiceOk = answers.q7.choice !== '';
+          const reasonOk = answers.q7.reason.trim().length >= 5;
+          const fillOk = answers.q7.fillIn.trim().length >= 3;
+          passed = choiceOk && reasonOk && fillOk;
+        }
+        else if (step === 8) {
+          const c1 = answers.q8.change1.trim().length >= 3;
+          const c2 = answers.q8.change2.trim().length >= 3;
+          const c3 = answers.q8.change3.trim().length >= 3;
+          const r = answers.q8.reason.trim().length >= 5;
+          passed = c1 && c2 && c3 && r;
+        }
+        else if (step === 9) {
+          const a = answers.q9.adviceA.trim().length >= 5;
+          const b = answers.q9.adviceB.trim().length >= 5;
+          const c = answers.q9.adviceC.trim().length >= 5;
+          passed = a && b && c;
+        }
+        else if (step === 10) {
+          const r1 = answers.q10.rule1.trim().length >= 3;
+          const r2 = answers.q10.rule2.trim().length >= 3;
+          const r3 = answers.q10.rule3.trim().length >= 3;
+          const s = answers.q10.slogan.trim().length >= 3;
+          const ref = answers.q10.reflection.trim().length >= 5;
+          passed = r1 && r2 && r3 && s && ref;
+        }
+
+        if (!passed) {
+          errors += 1;
+          hintLvl = Math.min(hintLvl + 1, 3);
+          setHintCount(prev => prev + 1);
+        }
+
+        setQuizStatus({
+          ...quizStatus,
+          [step]: {
+            attempted: true,
+            errors: errors,
+            isPassed: passed,
+            hintLevel: hintLvl
+          }
+        });
+      };
+
+      const nextStep = () => {
+        if (currentStep < totalSteps) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          setIsCompleted(true);
+        }
+      };
+
+      const prevStep = () => {
+        if (currentStep > 1) {
+          setCurrentStep(currentStep - 1);
+        }
+      };
+
+      const renderHint = (step) => {
+        const status = quizStatus[step];
+        if (!status.attempted || status.isPassed) return null;
+
+        const hints = {
+          1: [
+            "ลองพิจารณาว่าใครปฏิบัติตนโดยเคารพผู้อื่น หรือแจ้งผู้ใหญ่เมื่อพบปัญหา",
+            "สังเกตพฤติกรรม: การแชร์ข่าวทันที หรือบอกรหัสผ่านให้คนอื่น เป็นสิ่งที่ไม่ปลอดภัยนะจ๊ะ!",
+            "คำตอบคือ 'ต้น' (ขออนุญาตก่อนโพสต์) และ 'บอล' (แจ้งครูเมื่อเพื่อนถูกล้อ) อย่าลืมเขียนเหตุผลสั้น ๆ ด้วยนะ"
+          ],
+          2: [
+            "ลองคิดดูว่า ข้อมูลใดสามารถใช้ระบุตัวเราได้ และหากผู้อื่นนำไปใช้ อาจทำให้เราไม่ปลอดภัย",
+            "ข้อมูล เช่น รหัสผ่าน ที่อยู่ เบอร์โทร เลขบัตรประชาชน เป็นข้อมูลส่วนตัวมากๆ ไม่ควรแชร์นะ",
+            "จัดหมวดหมู่ให้ครบ 8 ข้อ และพิมพ์บอกเหตุผลเพิ่มเติมอีกนิดหน่อยนะเด็ก ๆ"
+          ],
+          3: [
+            "หากคนแปลกหน้ามาขอข้อมูลส่วนตัวพร้อมเสนอของรางวัล เราควรปฏิเสธหรือปรึกษาใครดี?",
+            "อย่าลืมว่าชื่อ ที่อยู่ เบอร์โทรศัพท์ คือข้อมูลส่วนตัวที่ไม่ควรให้คนแปลกหน้าเด็ดขาด",
+            "ตอบปฏิเสธ ไม่ให้ข้อมูล และบอกผู้ปกครองหรือคุณครูเพื่อขอคำปรึกษา"
+          ],
+          4: [
+            "อ่านสถานการณ์ฝั่งซ้าย แล้วเลือกลากข้อความฝั่งขวามาจับคู่ให้ตรงกันนะ",
+            "สังเกตคำสำคัญ เช่น 'ข่าวสงสัย' -> 'ตรวจสอบ', 'โพสต์รูป' -> 'ขออนุญาต'",
+            "จับคู่ให้ครบทั้ง 5 ข้อ เพื่อให้สามารถตรวจคำตอบได้ถูกต้องนะ"
+          ],
+          5: [
+            "สิ่งแรกสุดที่คุณควรทำเมื่อเจอลิงก์แปลกๆ คืออะไร? (กดหยุดทันทีไหมนะ?)",
+            "ขั้นที่ 1 ควรเป็น 'หยุดและไม่กดลิงก์' จากนั้นจึงตรวจสอบและแจ้งผู้ปกครอง",
+            "จัดเรียงโดยให้ลำดับแรกคือ 'หยุดและไม่กดลิงก์' แล้วเรียงขั้นตอนถัดไปอย่างมีเหตุผล"
+          ],
+          6: [
+            "นึกถึงจิตใจของเพื่อน หากมีคนเอารูปไปโพสต์ล้อเลียน เพื่อนจะรู้สึกอย่างไร?",
+            "การเป็นพลเมืองดิจิทัลที่ดี ต้องหยุดยั้งการกลั่นแกล้ง (Cyberbullying) และเคารพสิทธิผู้อื่น",
+            "พิมพ์คำตอบแนะนำให้หยุดการกระทำ และอธิบายผลกระทบที่มีต่อความรู้สึกและสิทธิของเพื่อน"
+          ],
+          7: [
+            "ข้อความที่ส่งต่อกันมา โดยไม่มีแหล่งอ้างอิงชัดเจน เราควรเชื่อทันทีเลยไหม?",
+            "โรงเรียนจะหยุดหรือไม่ ต้องรอประกาศอย่างเป็นทางการจากทางโรงเรียนหรือคุณครูเท่านั้น",
+            "เลือก 'ยังไม่เชื่อและไม่แชร์' พร้อมเขียนเหตุผลและเติมคำว่า 'ตรวจสอบความถูกต้อง' ในช่องว่าง"
+          ],
+          8: [
+            "ลองเปลี่ยนการเล่นโทรศัพท์ดึกๆ มาเป็นการกำหนดเวลาพักผ่อนให้เพียงพอสิ",
+            "การแบ่งเวลาให้กับการเรียน การนอนหลับ และการพักสายตา จะช่วยให้สุขภาพเราดีขึ้น",
+            "กรอกข้อเสนอแนะเปลี่ยนพฤติกรรมให้ครบทั้ง 3 ช่อง และบอกเหตุผลว่าทำไมต้องควบคุมเวลา"
+          ],
+          9: [
+            "คิดถึงหลักการ: เก็บความลับ (รหัสผ่าน), ชัวร์ก่อนแชร์, และช่วยเหลือเมื่อเพื่อนถูกกลั่นแกล้ง",
+            "ใช้คำพูดที่สุภาพและแนะนำวิธีที่ปลอดภัยให้กับเพื่อนในทั้ง 3 สถานการณ์",
+            "พิมพ์คำแนะนำสั้นๆ แต่ตรงประเด็นให้ครบทั้งสถานการณ์ A, B และ C"
+          ],
+          10: [
+            "เขียนกฎง่ายๆ 3 ข้อที่คุณสามารถทำได้จริง เช่น ไม่บอกรหัสผ่าน เคารพเพื่อน ชัวร์ก่อนแชร์",
+            "แต่งสโลแกนสร้างสรรค์และเล่าสิ่งที่ตนเองจะนำไปใช้ในชีวิตจริงหลังเรียนจบ",
+            "กรอกข้อมูลให้ครบทุกช่องเพื่อจบใบงานอย่างสมบูรณ์แบบ!"
+          ]
+        };
+
+        const level = status.hintLevel;
+        if (level === 0) return null;
+
+        return (
+          <div className="mt-4 p-4 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-900">
+            <div className="flex items-center gap-2 font-bold mb-1 text-amber-800">
+              <Icon name="help-circle" className="w-5 h-5 text-amber-600" />
+              <span>คำใบ้เรียนรู้ (ระดับที่ {level}/3)</span>
+            </div>
+            <p className="text-sm md:text-base">{hints[step][level - 1]}</p>
+            {level === 3 && (
+              <p className="text-xs text-amber-700 mt-2 font-medium">
+                💪 ไม่เป็นไรนะเด็กๆ! ลองทบทวนเนื้อหาและแก้ไขคำตอบอีกครั้ง คุณทำได้แน่นอน!
+              </p>
+            )}
+          </div>
+        );
+      };
+
+      const renderFeedback = (step) => {
+        const status = quizStatus[step];
+        if (!status.isPassed) return null;
+
+        const feedbacks = {
+          1: "💡 เรียนรู้เพิ่มเติม: พลเมืองดิจิทัลที่ดีต้องรู้จักเคารพสิทธิผู้อื่น เช่น การขออนุญาตก่อนโพสต์รูป และช่วยเหลือเพื่อนเมื่อพบการกลั่นแกล้งออนไลน์",
+          2: "💡 เรียนรู้เพิ่มเติม: ข้อมูลส่วนตัว เช่น รหัสผ่าน เบอร์โทรศัพท์ และที่อยู่อาศัย ควรเก็บเป็นความลับเพื่อป้องกันผู้ไม่หวังดีนำไปใช้ในทางที่ผิด",
+          3: "💡 เรียนรู้เพิ่มเติม: เมื่อพบข้อความสงสัยหรือมีคนแปลกหน้ามาขอข้อมูล ให้ปฏิเสธทันทีและแจ้งคุณครูหรือผู้ปกครองเพื่อความปลอดภัย",
+          4: "💡 เรียนรู้เพิ่มเติม: การปฏิบัติตนอย่างถูกต้องในทุกสถานการณ์ออนไลน์ ช่วยให้สังคมดิจิทัลน่าอยู่และมีความปลอดภัยสำหรับทุกคน",
+          5: "💡 เรียนรู้เพิ่มเติม: เมื่อเจอลิงก์เสี่ยง 'หยุด - ไม่กด - ไม่แชร์' แล้วปรึกษาผู้ใหญ่ทันที เป็นขั้นตอนที่ปลอดภัยที่สุดในการท่องเว็บ",
+          6: "💡 เรียนรู้เพิ่มเติม: การล้อเลียนหรือนำรูปผู้อื่นไปโพสต์โดยไม่ได้รับอนุญาตเป็นการละเมิดสิทธิส่วนบุคคล เราควรปกป้องและเคารพผู้อื่นเสมอ",
+          7: "💡 เรียนรู้เพิ่มเติม: ข้อมูลข่าวสารบนโลกออนไลน์มีทั้งจริงและเท็จ ก่อนจะเชื่อหรือแชร์ต่อ ต้องตรวจสอบแหล่งที่มาที่น่าเชื่อถือเสมอ",
+          8: "💡 เรียนรู้เพิ่มเติม: การจัดเวลาใช้งานเทคโนโลยีอย่างเหมาะสม (Digital Balance) ช่วยให้ร่างกายได้พักผ่อน มีสมาธิในการเรียน และสุขภาพดี",
+          9: "💡 เรียนรู้เพิ่มเติม: การแนะนำและช่วยเหลือเพื่อนให้ใช้เทคโนโลยีอย่างปลอดภัย เป็นการสร้างสังคมดิจิทัลที่ดีร่วมกัน",
+          10: "💡 เรียนรู้เพิ่มเติม: ยอดเยี่ยมมาก! กฎที่คุณสร้างขึ้นจะช่วยให้คุณเป็นพลเมืองดิจิทัลที่มีความรับผิดชอบ และใช้เทคโนโลยีอย่างปลอดภัย"
+        };
+
+        return (
+          <div className="mt-4 p-4 rounded-xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900">
+            <div className="flex items-center gap-2 font-bold mb-1 text-emerald-800">
+              <Icon name="check-circle" className="w-5 h-5 text-emerald-600" />
+              <span>🎉 เก่งมาก! คำตอบของนักเรียนแสดงถึงการเป็นพลเมืองดิจิทัลที่ดี</span>
+            </div>
+            <p className="text-sm md:text-base mt-1">{feedbacks[step]}</p>
+          </div>
+        );
+      };
+
+      return (
+        <div className="min-h-screen bg-sky-50 font-sans text-slate-800 flex flex-col justify-between">
+          {/* Header Bar */}
+          <header className="bg-white border-b-2 border-sky-100 shadow-sm sticky top-0 z-50">
+            <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="bg-sky-500 text-white p-2 rounded-xl shadow-inner">
+                  <Icon name="shield-check" className="w-6 h-6" />
+                </div>
+                <div>
+                  <h1 className="font-bold text-lg md:text-xl text-sky-900 leading-tight">พลเมืองดิจิทัลตัวน้อย</h1>
+                  <p className="text-xs text-sky-600">ใบงานออนไลน์ Interactive ชั้น ป.4</p>
+                </div>
+              </div>
+              {isStarted && !isCompleted && (
+                <div className="text-right">
+                  <span className="text-xs text-slate-500 font-medium">ความคืบหน้า</span>
+                  <div className="text-sm font-bold text-sky-600">ข้อ {currentStep} / {totalSteps}</div>
+                </div>
+              )}
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="max-w-4xl mx-auto w-full px-4 py-6 flex-grow">
+
+            {/* PAGE 1: Welcome & Student Info */}
+            {!isStarted ? (
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border-4 border-sky-200 text-center max-w-2xl mx-auto">
+                <div className="inline-block p-4 bg-sky-100 rounded-full mb-4 text-sky-600">
+                  <Icon name="book-open" className="w-16 h-16 mx-auto" />
+                </div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-sky-900 mb-2">
+                  📝 ใบงานออนไลน์ เรื่อง พลเมืองดิจิทัล
+                </h2>
+                <p className="text-slate-600 mb-6 text-sm md:text-base">
+                  เรียนรู้การเป็นพลเมืองดิจิทัลที่ปลอดภัย รู้เท่าทัน และมีจริยธรรมผ่านสถานการณ์จำลองสนุกๆ 10 ข้อ
+                </p>
+
+                <div className="bg-amber-50 rounded-2xl p-4 mb-6 border-2 border-amber-200 text-left text-sm text-amber-900">
+                  <p className="font-bold mb-1 flex items-center gap-1">
+                    📌 คำชี้แจงสำหรับนักเรียน:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-700">
+                    <li>ให้นักเรียนอ่านสถานการณ์ วิเคราะห์ และตอบคำถามให้ครบทุกข้อ</li>
+                    <li>สามารถใช้ระบบเลือกคำตอบ Drag & Drop หรือพิมพ์ตอบได้สะดวก</li>
+                    <li>หากตอบไม่ถูกต้อง ระบบจะมีคำใบ้คอยช่วยเหลือ ไม่ต้องกังวลนะจ๊ะ!</li>
+                  </ul>
+                </div>
+
+                <form onSubmit={(e) => { e.preventDefault(); if (studentInfo.name) setIsStarted(true); }} className="space-y-4 text-left bg-sky-50/50 p-6 rounded-2xl border border-sky-100">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">ชื่อ - นามสกุล *</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="ด.ช. พลเมือง ดีงาม"
+                      value={studentInfo.name}
+                      onChange={(e) => setStudentInfo({ ...studentInfo, name: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none bg-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">ชั้น</label>
+                      <input 
+                        type="text" 
+                        value={studentInfo.grade}
+                        disabled
+                        className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-500 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">ห้อง / เลขที่</label>
+                      <input 
+                        type="text" 
+                        placeholder="ป.4/1 เลขที่ 12"
+                        value={studentInfo.room}
+                        onChange={(e) => setStudentInfo({ ...studentInfo, room: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-200 transition-all text-lg flex items-center justify-center gap-2"
+                  >
+                    <span>เริ่มทำใบงาน</span>
+                    <Icon name="chevron-right" className="w-5 h-5" />
+                  </button>
+                </form>
+              </div>
+            ) : !isCompleted ? (
+              /* WORKSHEET CARD SYSTEM */
+              <div className="space-y-6">
+                {/* Progress Bar */}
+                <div className="bg-white p-4 rounded-2xl border-2 border-sky-100 shadow-sm">
+                  <div className="flex justify-between items-center mb-2 text-xs font-bold text-slate-500">
+                    <span>ความคืบหน้าการทำใบงาน</span>
+                    <span>{Math.round((currentStep / totalSteps) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5">
+                    <div 
+                      className="bg-sky-400 h-full rounded-full transition-all duration-300" 
+                      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Step Card Container */}
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg border-2 border-sky-100 relative">
+                  
+                  {/* Question Header */}
+                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                    <span className="w-10 h-10 rounded-2xl bg-sky-500 text-white font-black flex items-center justify-center text-lg shadow-md shadow-sky-200">
+                      {currentStep}
+                    </span>
+                    <div>
+                      <h3 className="font-bold text-lg md:text-xl text-slate-800">
+                        {currentStep === 1 && "ข้อ 1 : ใครเป็นพลเมืองดิจิทัลที่ดี?"}
+                        {currentStep === 2 && "ข้อ 2 : ข้อมูลไหนควรเก็บไว้?"}
+                        {currentStep === 3 && "ข้อ 3 : ถ้าเป็นฉัน..."}
+                        {currentStep === 4 && "ข้อ 4 : จับคู่ให้ถูก"}
+                        {currentStep === 5 && "ข้อ 5 : ฉันควรทำอะไรก่อน?"}
+                        {currentStep === 6 && "ข้อ 6 : อ่านแชตแล้วคิด"}
+                        {currentStep === 7 && "ข้อ 7 : ข่าวนี้เชื่อได้หรือไม่?"}
+                        {currentStep === 8 && "ข้อ 8 : ช่วยต้นจัดเวลาการใช้เทคโนโลยี"}
+                        {currentStep === 9 && "ข้อ 9 : ถ้าเพื่อนเจอแบบนี้ ฉันจะแนะนำว่า..."}
+                        {currentStep === 10 && "ข้อ 10 : กฎของฉันบนโลกดิจิทัล"}
+                      </h3>
+                      <p className="text-xs text-sky-600 font-medium">วิเคราะห์สถานการณ์และเลือกแนวทางปฏิบัติที่เหมาะสม</p>
+                    </div>
+                  </div>
+
+                  {/* QUESTION CONTENT SWITCHER */}
+                  
+                  {/* Q1 */}
+                  {currentStep === 1 && (
+                    <div className="space-y-6">
+                      <p className="text-slate-700 font-medium">
+                        ให้นักเรียนเลือกลากหรือกดคลิกเลือกตัวละครที่มีพฤติกรรมเหมาะสม เข้าไปอยู่ในกล่อง <span className="text-emerald-600 font-bold">"พลเมืองดิจิทัลที่ดี"</span>
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {q1Items.map((item) => {
+                          const isSelected = answers.q1.selected.includes(item.id);
+                          return (
+                            <div 
+                              key={item.id} 
+                              onClick={() => isSelected ? removeItemQ1(item.id) : handleDropQ1(item.id)}
+                              className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                                isSelected 
+                                  ? 'bg-emerald-50 border-emerald-400 text-emerald-900 shadow-sm' 
+                                  : 'bg-slate-50 border-slate-200 hover:border-sky-300 text-slate-700'
+                              }`}
+                            >
+                              <span className="font-medium text-sm md:text-base">{item.text}</span>
+                              <span className={`px-3 py-1 rounded-xl text-xs font-bold ${isSelected ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                                {isSelected ? 'เลือกแล้ว' : 'คลิกเพื่อเลือก'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Drop zone box */}
+                      <div className="p-6 bg-emerald-50/60 rounded-3xl border-2 border-dashed border-emerald-300 text-center min-h-[120px]">
+                        <h4 className="font-bold text-emerald-800 mb-3 flex items-center justify-center gap-2">
+                          <Icon name="user-check" className="w-5 h-5 text-emerald-600" />
+                          <span>กล่อง: พลเมืองดิจิทัลที่ดี ({answers.q1.selected.length}/2)</span>
+                        </h4>
+                        {answers.q1.selected.length === 0 ? (
+                          <p className="text-xs text-emerald-600 italic">ยังไม่มีตัวละครในกล่อง (กดเลือกรายการด้านบน)</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {answers.q1.selected.map(id => (
+                              <span key={id} className="bg-white border-2 border-emerald-400 text-emerald-800 font-bold px-4 py-2 rounded-2xl shadow-sm text-sm flex items-center gap-2">
+                                👤 {id}
+                                <button onClick={() => removeItemQ1(id)} className="text-rose-500 font-black hover:text-rose-700">✕</button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          เพราะอะไรฉันจึงเลือกตัวละครเหล่านี้? (พิมพ์เหตุผลสั้น ๆ)
+                        </label>
+                        <textarea 
+                          rows={3}
+                          placeholder="เพราะ..."
+                          value={answers.q1.reason}
+                          onChange={(e) => setAnswers({ ...answers, q1: { ...answers.q1, reason: e.target.value } })}
+                          className="w-full p-3 rounded-2xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q2 */}
+                  {currentStep === 2 && (
+                    <div className="space-y-6">
+                      <p className="text-slate-700 font-medium">
+                        ให้นักเรียนจัดหมวดหมู่ข้อมูล โดยเลือกคลิกที่บัตรข้อมูลเพื่อนำไปใส่หมวดหมู่ที่เหมาะสม
+                      </p>
+
+                      {/* Unassigned items */}
+                      <div className="flex flex-wrap gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        {q2Items.filter(item => 
+                          !answers.q2.shareable.some(i => i.id === item.id) && 
+                          !answers.q2.privateData.some(i => i.id === item.id)
+                        ).map(item => (
+                          <div key={item.id} className="bg-white border border-slate-300 p-2 px-3 rounded-xl shadow-sm flex items-center gap-2 text-xs font-bold text-slate-700">
+                            <span>📄 {item.text}</span>
+                            <div className="flex gap-1">
+                              <button onClick={() => handleDropQ2(item, 'shareable')} className="bg-sky-100 hover:bg-sky-200 text-sky-700 px-2 py-0.5 rounded-lg text-[10px]">🔵 แบ่งปัน</button>
+                              <button onClick={() => handleDropQ2(item, 'private')} className="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2 py-0.5 rounded-lg text-[10px]">🔴 เก็บไว้</button>
+                            </div>
+                          </div>
+                        ))}
+                        {q2Items.every(item => 
+                          answers.q2.shareable.some(i => i.id === item.id) || 
+                          answers.q2.privateData.some(i => i.id === item.id)
+                        ) && (
+                          <p className="text-xs text-slate-400 italic mx-auto">จัดหมวดหมู่ครบทุกข้อแล้ว</p>
+                        )}
+                      </div>
+
+                      {/* Two Categories */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Shareable */}
+                        <div className="p-4 rounded-2xl bg-sky-50 border-2 border-sky-300 min-h-[160px]">
+                          <h4 className="font-bold text-sky-800 mb-2 text-sm flex items-center gap-1">
+                            🔵 ข้อมูลที่สามารถแบ่งปันได้อย่างเหมาะสม ({answers.q2.shareable.length})
+                          </h4>
+                          <div className="space-y-2">
+                            {answers.q2.shareable.map(item => (
+                              <div key={item.id} className="bg-white p-2 px-3 rounded-xl border border-sky-200 flex justify-between items-center text-xs text-sky-900 font-medium">
+                                <span>{item.text}</span>
+                                <button onClick={() => handleDropQ2(item, 'none')} className="text-slate-400 hover:text-rose-500">✕</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Private */}
+                        <div className="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 min-h-[160px]">
+                          <h4 className="font-bold text-rose-800 mb-2 text-sm flex items-center gap-1">
+                            🔴 ข้อมูลที่ไม่ควรเปิดเผย ({answers.q2.privateData.length})
+                          </h4>
+                          <div className="space-y-2">
+                            {answers.q2.privateData.map(item => (
+                              <div key={item.id} className="bg-white p-2 px-3 rounded-xl border border-rose-200 flex justify-between items-center text-xs text-rose-900 font-medium">
+                                <span>{item.text}</span>
+                                <button onClick={() => handleDropQ2(item, 'none')} className="text-slate-400 hover:text-rose-500">✕</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          เพราะเหตุใดเราจึงไม่ควรเปิดเผยข้อมูลบางอย่างบนอินเทอร์เน็ต?
+                        </label>
+                        <textarea 
+                          rows={2}
+                          placeholder="เพราะอาจเกิดอันตราย เช่น..."
+                          value={answers.q2.reason}
+                          onChange={(e) => setAnswers({ ...answers, q2: { ...answers.q2, reason: e.target.value } })}
+                          className="w-full p-3 rounded-2xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q3 */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6">
+                      <div className="p-5 bg-purple-50 rounded-2xl border-2 border-purple-200 flex gap-4 items-start">
+                        <div className="p-3 bg-purple-500 text-white rounded-2xl shrink-0">
+                          <Icon name="message-square" className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-lg">สถานการณ์</span>
+                          <p className="text-slate-800 font-bold mt-1 text-base">
+                            มีคนที่นักเรียนไม่รู้จักส่งข้อความมาว่า:
+                          </p>
+                          <p className="text-purple-900 italic mt-1 bg-white p-3 rounded-xl border border-purple-200 text-sm">
+                            "เรามีของรางวัลแจกฟรี! เพียงบอกชื่อจริง ที่อยู่ และเบอร์โทรศัพท์มาให้เรานะ"
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">1. ฉันจะทำอย่างไร?</label>
+                          <input 
+                            type="text" 
+                            placeholder="ตอบปฏิเสธ ไม่ให้ข้อมูล..."
+                            value={answers.q3.action}
+                            onChange={(e) => setAnswers({ ...answers, q3: { ...answers.q3, action: e.target.value } })}
+                            className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">2. เพราะอะไรจึงเลือกทำแบบนั้น?</label>
+                          <input 
+                            type="text" 
+                            placeholder="เพราะคนแปลกหน้าอาจหลอกลวง..."
+                            value={answers.q3.reason}
+                            onChange={(e) => setAnswers({ ...answers, q3: { ...answers.q3, reason: e.target.value } })}
+                            className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">3. หากไม่แน่ใจ ฉันควรขอคำปรึกษาจากใคร?</label>
+                          <input 
+                            type="text" 
+                            placeholder="ผู้ปกครอง ครู..."
+                            value={answers.q3.advisor}
+                            onChange={(e) => setAnswers({ ...answers, q3: { ...answers.q3, advisor: e.target.value } })}
+                            className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q4 */}
+                  {currentStep === 4 && (
+                    <div className="space-y-6">
+                      <p className="text-slate-700 font-medium">
+                        ให้นักเรียนเลือกจับคู่สถานการณ์ฝั่งซ้ายกับแนวทางปฏิบัติฝั่งขวาให้ถูกต้อง
+                      </p>
+
+                      <div className="space-y-3">
+                        {q4Pairs.map((pair) => (
+                          <div key={pair.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                            <div className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                              <span>{pair.question}</span>
+                            </div>
+                            <div>
+                              <select 
+                                value={answers.q4.matched[pair.id] || ''}
+                                onChange={(e) => setAnswers({
+                                  ...answers,
+                                  q4: {
+                                    matched: { ...answers.q4.matched, [pair.id]: e.target.value }
+                                  }
+                                })}
+                                className="w-full p-2.5 rounded-xl border-2 border-sky-200 text-xs md:text-sm bg-white focus:outline-none focus:border-sky-400 text-slate-700 font-medium"
+                              >
+                                <option value="">-- เลือกวิธีปฏิบัติ --</option>
+                                {q4Pairs.map(p => (
+                                  <option key={p.id} value={p.answer}>{p.answer}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q5 */}
+                  {currentStep === 5 && (
+                    <div className="space-y-6">
+                      <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl text-amber-900 text-sm">
+                        <p className="font-bold flex items-center gap-1">
+                          <Icon name="alert-triangle" className="w-4 h-4 text-amber-600" />
+                          <span>สถานการณ์:</span>
+                        </p>
+                        <p className="mt-1">นักเรียนได้รับข้อความจากคนแปลกหน้าพร้อมลิงก์ว่า <span className="font-bold text-rose-600">“กดรับของรางวัลฟรี คลิกเลย!”</span></p>
+                      </div>
+
+                      <p className="text-slate-700 font-medium text-sm">
+                        ให้นักเรียนปรับเปลี่ยนลำดับขั้นตอนการปฏิบัติที่เหมาะสม (เรียงจากขั้นตอนแรกไปขั้นตอนสุดท้าย)
+                      </p>
+
+                      <div className="space-y-2">
+                        {answers.q5.sequence.map((stepId, index) => {
+                          const item = q5StepsData.find(s => s.id === stepId);
+                          return (
+                            <div key={stepId} className="p-3 bg-white rounded-2xl border-2 border-sky-100 shadow-sm flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="w-7 h-7 rounded-xl bg-sky-100 text-sky-700 font-black text-xs flex items-center justify-center">
+                                  {index + 1}
+                                </span>
+                                <span className="text-sm font-bold text-slate-800">{item.text}</span>
+                              </div>
+                              <div className="flex gap-1">
+                                {index > 0 && (
+                                  <button 
+                                    onClick={() => {
+                                      const newSeq = [...answers.q5.sequence];
+                                      [newSeq[index - 1], newSeq[index]] = [newSeq[index], newSeq[index - 1]];
+                                      setAnswers({ ...answers, q5: { sequence: newSeq } });
+                                    }}
+                                    className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                                  >
+                                    ⬆️ เลื่อนขึ้น
+                                  </button>
+                                )}
+                                {index < answers.q5.sequence.length - 1 && (
+                                  <button 
+                                    onClick={() => {
+                                      const newSeq = [...answers.q5.sequence];
+                                      [newSeq[index + 1], newSeq[index]] = [newSeq[index], newSeq[index + 1]];
+                                      setAnswers({ ...answers, q5: { sequence: newSeq } });
+                                    }}
+                                    className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                                  >
+                                    ⬇️ เลื่อนลง
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q6 */}
+                  {currentStep === 6 && (
+                    <div className="space-y-6">
+                      <div className="bg-slate-100 rounded-3xl p-4 border-2 border-slate-200 max-w-md mx-auto space-y-3 font-sans">
+                        <div className="bg-sky-500 text-white p-2.5 rounded-2xl font-bold text-xs text-center">
+                          💬 กลุ่มแชตเพื่อน ป.4
+                        </div>
+                        
+                        <div className="space-y-2 text-xs">
+                          <div className="bg-white p-2.5 rounded-2xl rounded-tl-none max-w-[80%] shadow-sm">
+                            <span className="font-bold text-sky-600 block">ต้น</span>
+                            <span>555 ดูรูปน้ำสิ 😂</span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-2xl rounded-tl-none max-w-[80%] shadow-sm">
+                            <span className="font-bold text-indigo-600 block">บอล</span>
+                            <span>เอาไปโพสต์กลุ่มอื่นกัน</span>
+                          </div>
+                          <div className="bg-emerald-50 p-2.5 rounded-2xl rounded-tr-none ml-auto max-w-[80%] shadow-sm border border-emerald-200">
+                            <span className="font-bold text-emerald-700 block">ฟ้า</span>
+                            <span>เราไม่ควรโพสต์นะ น้ำไม่ได้อนุญาต</span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-2xl rounded-tl-none max-w-[80%] shadow-sm">
+                            <span className="font-bold text-indigo-600 block">บอล</span>
+                            <span>ไม่เป็นไรหรอก ไม่มีใครรู้</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">
+                            1. ถ้านักเรียนอยู่ในกลุ่มแชตนี้ นักเรียนจะตอบว่าอย่างไร? (1-2 ประโยค)
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="พิมพ์ข้อความที่คุณจะส่งในแชต..."
+                            value={answers.q6.reply}
+                            onChange={(e) => setAnswers({ ...answers, q6: { ...answers.q6, reply: e.target.value } })}
+                            className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">
+                            2. การกระทำของบอลส่งผลกระทบต่อใคร และอย่างไร?
+                          </label>
+                          <textarea 
+                            rows={2}
+                            placeholder="ส่งผลกระทบต่อ...'น้ำ' เพราะ..."
+                            value={answers.q6.impact}
+                            onChange={(e) => setAnswers({ ...answers, q6: { ...answers.q6, impact: e.target.value } })}
+                            className="w-full p-3 rounded-2xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q7 */}
+                  {currentStep === 7 && (
+                    <div className="space-y-6">
+                      <div className="bg-white p-4 rounded-2xl border-2 border-rose-200 shadow-md max-w-md mx-auto">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center text-xs">
+                            📢
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-xs text-slate-800">โพสต์จากสื่อออนไลน์</h5>
+                            <span className="text-[10px] text-slate-400">10 นาทีที่แล้ว</span>
+                          </div>
+                        </div>
+                        <p className="text-rose-700 font-extrabold text-sm bg-rose-50 p-3 rounded-xl border border-rose-100">
+                          🚨 “พรุ่งนี้โรงเรียนหยุด! ครูบอกมา ใครเห็นโพสต์นี้ช่วยแชร์ต่อให้เพื่อนทุกคนด้วย!!!”
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-2">
+                            1. นักเรียนจะเลือกปฏิบัติอย่างไร?
+                          </label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {['ยังไม่เชื่อ และไม่แชร์ต่อทันที', 'แชร์ต่อทันทีให้เพื่อนๆ รู้'].map(option => (
+                              <button
+                                key={option}
+                                onClick={() => setAnswers({ ...answers, q7: { ...answers.q7, choice: option } })}
+                                className={`p-3 rounded-2xl border-2 text-sm font-bold transition-all ${
+                                  answers.q7.choice === option 
+                                    ? 'bg-sky-500 border-sky-600 text-white shadow-md' 
+                                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-sky-300'
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">2. เหตุผลที่เลือกแบบนี้คืออะไร?</label>
+                          <input 
+                            type="text" 
+                            placeholder="เพราะอาจเป็นข่าวปลอม..."
+                            value={answers.q7.reason}
+                            onChange={(e) => setAnswers({ ...answers, q7: { ...answers.q7, reason: e.target.value } })}
+                            className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                          />
+                        </div>
+
+                        <div className="bg-sky-50 p-4 rounded-2xl border border-sky-200">
+                          <label className="block text-sm font-bold text-sky-900 mb-1">
+                            3. เติมประโยคให้สมบูรณ์:
+                          </label>
+                          <div className="flex items-center gap-2 text-xs md:text-sm font-bold text-slate-800">
+                            <span>“ก่อนที่ฉันจะเชื่อหรือแชร์ข้อมูล ฉันควร</span>
+                            <input 
+                              type="text" 
+                              placeholder="ตรวจสอบข้อมูลก่อน"
+                              value={answers.q7.fillIn}
+                              onChange={(e) => setAnswers({ ...answers, q7: { ...answers.q7, fillIn: e.target.value } })}
+                              className="flex-grow p-2 rounded-xl border-2 border-sky-300 bg-white focus:outline-none focus:border-sky-500 text-sm"
+                            />
+                            <span>”</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q8 */}
+                  {currentStep === 8 && (
+                    <div className="space-y-6">
+                      <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-2xl text-indigo-900 text-sm">
+                        <p className="font-bold flex items-center gap-1">
+                          <Icon name="clock" className="w-4 h-4 text-indigo-600" />
+                          <span>สถานการณ์ของต้น:</span>
+                        </p>
+                        <p className="mt-1">ต้นกลับจากโรงเรียนแล้วเล่นโทรศัพท์ต่อเนื่องจนถึงเที่ยงคืน ทำให้ตื่นสายและไม่มีสมาธิในการเรียน</p>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs md:text-sm text-left border-collapse">
+                          <thead>
+                            <tr className="bg-sky-100 text-sky-900 font-bold border-b-2 border-sky-200">
+                              <th className="p-3 rounded-tl-xl">พฤติกรรมเดิม</th>
+                              <th className="p-3 rounded-tr-xl">สิ่งที่ควรเปลี่ยน (เสนอแนะ)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-slate-50">
+                            <tr>
+                              <td className="p-3 font-medium text-slate-700">1. เล่นโทรศัพท์ถึงเที่ยงคืน</td>
+                              <td className="p-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="กำหนดเวลาเลิกเล่น เช่น ไม่เกิน 20.00 น."
+                                  value={answers.q8.change1}
+                                  onChange={(e) => setAnswers({ ...answers, q8: { ...answers.q8, change1: e.target.value } })}
+                                  className="w-full p-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-sky-400"
+                                />
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="p-3 font-medium text-slate-700">2. เล่นโทรศัพท์ระหว่างทำการบ้าน</td>
+                              <td className="p-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="ทำการบ้านให้เสร็จก่อนเล่น"
+                                  value={answers.q8.change2}
+                                  onChange={(e) => setAnswers({ ...answers, q8: { ...answers.q8, change2: e.target.value } })}
+                                  className="w-full p-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-sky-400"
+                                />
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="p-3 font-medium text-slate-700">3. ไม่พักสายตา</td>
+                              <td className="p-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="พักสายตาทุกๆ 20-30 นาที"
+                                  value={answers.q8.change3}
+                                  onChange={(e) => setAnswers({ ...answers, q8: { ...answers.q8, change3: e.target.value } })}
+                                  className="w-full p-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-sky-400"
+                                />
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">
+                          ทำไมเราจึงควรควบคุมเวลาในการใช้เทคโนโลยี?
+                        </label>
+                        <textarea 
+                          rows={2}
+                          placeholder="เพื่อสุขภาพ ตาไม่เสีย ได้พักผ่อนเต็มที่..."
+                          value={answers.q8.reason}
+                          onChange={(e) => setAnswers({ ...answers, q8: { ...answers.q8, reason: e.target.value } })}
+                          className="w-full p-3 rounded-2xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q9 */}
+                  {currentStep === 9 && (
+                    <div className="space-y-5">
+                      <p className="text-slate-700 font-bold text-sm">
+                        ให้นักเรียนเขียนคำแนะนำเพื่อนเมื่อเจอสถานการณ์ต่างๆ ต่อไปนี้:
+                      </p>
+
+                      <div className="space-y-4">
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                          <span className="font-bold text-sky-700 text-xs bg-sky-100 px-2.5 py-1 rounded-lg">สถานการณ์ A</span>
+                          <p className="text-sm font-bold text-slate-800 my-1">เพื่อนกำลังจะบอกรหัสผ่านให้เพื่อนอีกคน</p>
+                          <input 
+                            type="text" 
+                            placeholder="คำแนะนำของฉันคือ..."
+                            value={answers.q9.adviceA}
+                            onChange={(e) => setAnswers({ ...answers, q9: { ...answers.q9, adviceA: e.target.value } })}
+                            className="w-full p-2.5 mt-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-sky-400 text-sm"
+                          />
+                        </div>
+
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                          <span className="font-bold text-amber-700 text-xs bg-amber-100 px-2.5 py-1 rounded-lg">สถานการณ์ B</span>
+                          <p className="text-sm font-bold text-slate-800 my-1">เพื่อนเห็นข่าวใน TikTok และกำลังจะส่งต่อทันที</p>
+                          <input 
+                            type="text" 
+                            placeholder="คำแนะนำของฉันคือ..."
+                            value={answers.q9.adviceB}
+                            onChange={(e) => setAnswers({ ...answers, q9: { ...answers.q9, adviceB: e.target.value } })}
+                            className="w-full p-2.5 mt-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-sky-400 text-sm"
+                          />
+                        </div>
+
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                          <span className="font-bold text-rose-700 text-xs bg-rose-100 px-2.5 py-1 rounded-lg">สถานการณ์ C</span>
+                          <p className="text-sm font-bold text-slate-800 my-1">เพื่อนถูกนำรูปไปโพสต์ล้อเลียน</p>
+                          <input 
+                            type="text" 
+                            placeholder="คำแนะนำของฉันคือ..."
+                            value={answers.q9.adviceC}
+                            onChange={(e) => setAnswers({ ...answers, q9: { ...answers.q9, adviceC: e.target.value } })}
+                            className="w-full p-2.5 mt-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-sky-400 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Q10 */}
+                  {currentStep === 10 && (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-sky-400 to-indigo-500 p-6 rounded-3xl text-white shadow-md">
+                        <h4 className="font-black text-lg mb-4 text-center flex items-center justify-center gap-2">
+                          🛡️ กฎของฉันบนโลกดิจิทัล
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 bg-white/10 p-2 rounded-2xl backdrop-blur-sm">
+                            <span className="font-bold text-xs shrink-0">กฎข้อที่ 1:</span>
+                            <input 
+                              type="text" 
+                              placeholder="ฉันจะ ไม่เปิดเผยรหัสผ่านกับใคร..."
+                              value={answers.q10.rule1}
+                              onChange={(e) => setAnswers({ ...answers, q10: { ...answers.q10, rule1: e.target.value } })}
+                              className="w-full p-2 rounded-xl border-none text-slate-800 text-sm focus:outline-none bg-white"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 bg-white/10 p-2 rounded-2xl backdrop-blur-sm">
+                            <span className="font-bold text-xs shrink-0">กฎข้อที่ 2:</span>
+                            <input 
+                              type="text" 
+                              placeholder="ฉันจะ ขออนุญาตเพื่อนก่อนโพสต์รูป..."
+                              value={answers.q10.rule2}
+                              onChange={(e) => setAnswers({ ...answers, q10: { ...answers.q10, rule2: e.target.value } })}
+                              className="w-full p-2 rounded-xl border-none text-slate-800 text-sm focus:outline-none bg-white"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 bg-white/10 p-2 rounded-2xl backdrop-blur-sm">
+                            <span className="font-bold text-xs shrink-0">กฎข้อที่ 3:</span>
+                            <input 
+                              type="text" 
+                              placeholder="ฉันจะ ตรวจสอบข่าวสารก่อนแชร์ต่อ..."
+                              value={answers.q10.rule3}
+                              onChange={(e) => setAnswers({ ...answers, q10: { ...answers.q10, rule3: e.target.value } })}
+                              className="w-full p-2 rounded-xl border-none text-slate-800 text-sm focus:outline-none bg-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">
+                          สโลแกนสั้น ๆ ของฉัน:
+                        </label>
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                          <span className="shrink-0">“พลเมืองดิจิทัลที่ดี คือ</span>
+                          <input 
+                            type="text" 
+                            placeholder="ผู้ที่ใช้อินเทอร์เน็ตอย่างปลอดภัยและเคารพผู้อื่น"
+                            value={answers.q10.slogan}
+                            onChange={(e) => setAnswers({ ...answers, q10: { ...answers.q10, slogan: e.target.value } })}
+                            className="w-full p-2.5 rounded-xl border-2 border-sky-300 focus:outline-none focus:border-sky-500 text-sm"
+                          />
+                          <span className="shrink-0">”</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">
+                          สะท้อนความคิด: หลังจากเรียนเรื่องนี้ สิ่งหนึ่งที่ฉันจะนำไปใช้ในชีวิตประจำวันคืออะไร?
+                        </label>
+                        <textarea 
+                          rows={2}
+                          placeholder="เช่น จะแบ่งเวลาเล่นเกม และไม่แชร์ข้อมูลส่วนตัว..."
+                          value={answers.q10.reflection}
+                          onChange={(e) => setAnswers({ ...answers, q10: { ...answers.q10, reflection: e.target.value } })}
+                          className="w-full p-3 rounded-2xl border-2 border-slate-200 focus:border-sky-400 focus:outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hint & Feedback Render Area */}
+                  {renderHint(currentStep)}
+                  {renderFeedback(currentStep)}
+
+                  {/* Controls Footer inside Card */}
+                  <div className="mt-8 pt-4 border-t border-slate-100 flex flex-wrap gap-3 justify-between items-center">
+                    <button
+                      onClick={prevStep}
+                      disabled={currentStep === 1}
+                      className={`px-4 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-1 transition-all ${
+                        currentStep === 1 
+                          ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      <Icon name="chevron-left" className="w-4 h-4" />
+                      <span>ก่อนหน้า</span>
+                    </button>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => checkAnswer(currentStep)}
+                        className="px-5 py-2.5 bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold rounded-2xl shadow-md transition-all text-sm flex items-center gap-1"
+                      >
+                        <Icon name="check-circle" className="w-4 h-4" />
+                        <span>ตรวจคำตอบ</span>
+                      </button>
+
+                      <button
+                        onClick={nextStep}
+                        disabled={!quizStatus[currentStep].isPassed}
+                        className={`px-6 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-1 shadow-md transition-all ${
+                          quizStatus[currentStep].isPassed 
+                            ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-sky-200' 
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
+                      >
+                        <span>{currentStep === totalSteps ? 'สรุปผลใบงาน' : 'ถัดไป'}</span>
+                        <Icon name="chevron-right" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            ) : (
+              /* COMPLETION SUMMARY PAGE */
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border-4 border-emerald-200 text-center max-w-2xl mx-auto space-y-6">
+                <div className="inline-block p-4 bg-emerald-100 rounded-full text-emerald-600">
+                  <Icon name="award" className="w-16 h-16 mx-auto" />
+                </div>
+
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-emerald-900">
+                    🎉 ทำใบงานเสร็จแล้ว!
+                  </h2>
+                  <p className="text-slate-600 text-sm mt-1">
+                    ยินดีด้วยนะ <span className="font-bold text-slate-800">{studentInfo.name}</span> ชั้น {studentInfo.grade} {studentInfo.room}
+                  </p>
+                </div>
+
+                {/* Summary Stats */}
+                <div className="grid grid-cols-2 gap-4 bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100">
+                  <div className="p-3 bg-white rounded-xl shadow-sm">
+                    <span className="text-xs text-slate-500 font-bold block">ข้อที่ทำสำเร็จ</span>
+                    <span className="text-2xl font-black text-emerald-600">10 / 10</span>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl shadow-sm">
+                    <span className="text-xs text-slate-500 font-bold block">จำนวนครั้งที่ขอคำใบ้</span>
+                    <span className="text-2xl font-black text-amber-500">{hintCount} ครั้ง</span>
+                  </div>
+                </div>
+
+                {/* Badges / Strengths */}
+                <div className="text-left space-y-2">
+                  <h4 className="font-bold text-slate-700 text-sm">🌟 จุดเด่นการเรียนรู้ที่คุณทำได้สำเร็จ:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold">
+                    <div className="p-2.5 bg-sky-50 text-sky-800 rounded-xl flex items-center gap-2 border border-sky-100">
+                      <Icon name="lock" className="w-4 h-4 text-sky-600 shrink-0" />
+                      <span>🔐 ปกป้องข้อมูลส่วนตัว</span>
+                    </div>
+                    <div className="p-2.5 bg-indigo-50 text-indigo-800 rounded-xl flex items-center gap-2 border border-indigo-100">
+                      <Icon name="user-check" className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <span>🤝 เคารพสิทธิผู้อื่น</span>
+                    </div>
+                    <div className="p-2.5 bg-purple-50 text-purple-800 rounded-xl flex items-center gap-2 border border-purple-100">
+                      <Icon name="search" className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>🔎 รู้เท่าทันข้อมูลข่าวสาร</span>
+                    </div>
+                    <div className="p-2.5 bg-emerald-50 text-emerald-800 rounded-xl flex items-center gap-2 border border-emerald-100">
+                      <Icon name="shield-check" className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>🛡️ ใช้เทคโนโลยีอย่างปลอดภัย</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Final Pledge */}
+                <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 font-extrabold text-base">
+                  “ฉันพร้อมเป็นพลเมืองดิจิทัลที่ดี”
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setIsStarted(false);
+                    setIsCompleted(false);
+                    setCurrentStep(1);
+                  }}
+                  className="px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-2xl shadow-md transition-all text-sm inline-flex items-center gap-2"
+                >
+                  <Icon name="refresh-cw" className="w-4 h-4" />
+                  <span>ทำใบงานใหม่อีกครั้ง</span>
+                </button>
+              </div>
+            )}
+
+          </main>
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
+            <p>ใบงานออนไลน์ Interactive เรื่อง พลเมืองดิจิทัล | สำหรับการจัดการเรียนรู้วิทยาการคำนวณ ป.4</p>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
